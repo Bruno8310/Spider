@@ -2,5 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="F:/Google Download_file/jsoup-1.11.3.jar"/>
+	<classpathentry kind="lib" path="G:/代码集合/前端设计/mysql-connector-java-5.1.16-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
