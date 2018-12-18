@@ -5,31 +5,47 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-
-public class getElement {
+/**
+ * 抓取页面影片信息
+ */
+public class test implements Runnable {
+    //页面路径
+	String url;
+	//存储抓取的数据
+	ArrayList<Film> list;
+	//输出流对象
 	static private  FileOutputStream outputStream=null;
+	//输入流对象
 	static private  InputStream inputStream=null;
+	//缓冲流对象
 	static private  BufferedInputStream bis=null;
+	//图片下载本地路径
 	static public   String outpath="F://spider_code//outpath//";
-	
-    public static void main(String[] args) {
-       String url="https://movie.douban.com/top250"; 
-    	try {
-         Document doc=Jsoup.connect(url).get();
+	//构造方法
+	public test(String url, ArrayList<Film> list) {
+		super();
+		this.url = url;
+		this.list = list;
+	}
+	//执行要抓取的任务
+	public void run() {
+		//获取线程名字
+	  String name=Thread.currentThread().getName();
+	  System.out.println(name+"线程，处理："+url);
+	  //Jsoup
+	  try { 
+		 Document doc=Jsoup.connect(url).get();
 		 Elements es=doc.select(".grid_view li");
-		 //创建影片列表
-	      ArrayList<Film> list=new ArrayList<>();
-	      for(Element e :es)
+		 for(Element e :es)
 	      {
 	    	  Film film=new Film();
 	    	  //获取每部电影url的a标签
@@ -56,15 +72,12 @@ public class getElement {
 	    	  film.setRating(rating);
 	    	  //获取上映日期
 	    	  Element day=mov_doc.select("span[property='v:initialReleaseDate']").last();
-	    	  //去除时间中文本内容 
-	    	  String day1=day.text().toString();
+	    	  //时间中文本内容 
+	    	  String day1=day.text().toString(); 
 	    	  film.setDay(day1);
-	    	 
-	    	 
 	    	  //评价人数
 	    	  int number=Integer.parseInt(mov_doc.select("span[property='v:votes']").text());
 	    	  film.setNumber(number);
-	    	  
 	    	  //海报
 	    	  String poster=e.select("img").first().attr("src").toString();
 	    	  film.setPoster(poster);
@@ -77,7 +90,7 @@ public class getElement {
 	    	  bis=new BufferedInputStream(inputStream);
 	    	  //读取字节数
 	    	  byte [] buf=new byte[1024];
-	    	  //生成文件
+	    	  //生成本地文件
 	    	  outputStream=new FileOutputStream(outpath+num+".jpg");
 	    	  //
 	    	  int size =0;
@@ -88,62 +101,65 @@ public class getElement {
 	    	  }
 	    	    film.setPoster(num+".jpg");
 	    	    //outputStream.flush();	  
-	    	    System.out.println(film);
-	    	    list.add(film);
-	    	  	  
+	    	  	    	  
+	    	  System.out.println(name+":"+film);
+	    	  list.add(film);
 	    	  
-	    	  
-	      }
-	   		 
-		 
-	} 
-	catch (Exception e) {
-		// TODO: handle exception
-		e.printStackTrace();
-	}
-	finally {
-		if(outputStream!=null) {
-			try {
-				outputStream.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(bis!=null)
-		{
-			try {
-				bis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(inputStream!=null)
-		{
-			try {
-				inputStream.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+	    	  }
+		  System.out.println(name+"线程，完成："+url);
+	  }
 			
+	  catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();} 
+	  finally {
+			if(outputStream!=null) {
+				try {
+					outputStream.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(bis!=null)
+			{
+				try {
+					bis.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(inputStream!=null)
+			{
+				try {
+					inputStream.close();
+				} 
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+	  }
+	   
 	}
 	
-}
+    public static String getInfo(Element mov)
+	  {  
+		String info="导演"+mov.select("a[rel='v:diectedBy']").text()+"\n";
+	     info+= "编剧"+mov.select(".attrs").get(1).text()+"\n";
+	     info+="主演"+mov.select(".attrs").get(2).text()+"\n";
+	     info+="类型"+mov.select("span[property='v:genre']").text();
+		 return info;
+		 
+	  }
+	}
 
 	
 
 
-public static String getInfo(Element mov)
-  {  
-	String info="导演"+mov.select("a[rel='v:diectedBy']").text()+"\n";
-     info+= "编剧"+mov.select(".attrs").get(1).text()+"\n";
-     info+="主演"+mov.select(".attrs").get(2).text()+"\n";
-     info+="类型"+mov.select("span[property='v:genre']").text();
-	 return info;
-	  
-  }
-}
+
+     
 
